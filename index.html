@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plethora.ai</title>
+<style>
+:root{--bg:#F2F2F2;--ink:#000000;--mute:#666666;--line:#BDBDBD;--acc:#000000}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono","Courier New",monospace}
+header{max-width:520px;margin:0 auto;padding:20px 20px 0;display:flex;justify-content:space-between;align-items:baseline}
+header b{font-weight:600}
+main{max-width:520px;margin:0 auto;padding:48px 20px 64px}
+main>*{animation:f .15s}
+@keyframes f{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){main>*{animation:none}}
+h1{font-size:22px;line-height:1.35;font-weight:600;margin:0 0 28px}
+button{font:inherit;cursor:pointer}
+.opt,.main{display:block;width:100%;min-height:56px;margin:0 0 10px;padding:0 16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);text-align:left}
+.main{background:var(--acc);border-color:var(--acc);color:#fff;text-align:center}
+.opt:hover{border-color:var(--ink)}
+.opt.on{border-color:var(--acc);background:var(--acc);color:#fff}
+input,textarea{width:100%;font:inherit;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);margin:0 0 10px}
+input{min-height:56px}
+textarea{resize:vertical;font-size:15px;padding:10px 12px;margin:6px 0 0}
+.more{display:block;margin:28px 0 0;font-size:14px;color:var(--mute)}
+.link{background:none;border:0;padding:0;color:var(--mute);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+main>.link{display:block;margin-top:24px}
+.note{color:var(--mute);font-size:14px;margin:0 0 20px}
+article{border-top:1px solid var(--line);padding:20px 0}
+article h2{font-size:19px;margin:0 0 4px;font-weight:600}
+article p{margin:0 0 12px}
+.small{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:14px;margin-right:8px}
+.st{margin-top:12px}
+.st ol{margin:0 0 8px;padding-left:20px}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<header><b>Plethora.ai</b><button id="sv" class="link"></button></header>
+<main id="m"></main>
+<script>
+// ---------- SAMPLE DATA: REPLACE WITH AI LATER ----------
+// Each item: [title, description, "step 1|step 2|step 3", optional filter tag]
+const D={
+"Arts":[
+["Draw your hands","A 20-minute warm-up sketch with any pen.","Pick a pen and paper|Draw your non-dominant hand without looking at the page|Redraw it slowly, looking this time"],
+["Blind contour portrait","Draw a face without lifting the pen.","Set a 10-minute timer|Keep the pen on the paper the whole time|Compare it with a normal sketch"],
+["Color mixing chart","Mix a grid of colors from three paints or pencils.","Choose three base colors|Mix each pair in equal parts|Label the results"],
+["One-line drawing","Draw an object in a single unbroken line.","Pick an object on your desk|Draw it without lifting the pen|Try again, faster"]],
+"Crafts":[
+["Origami crane","A classic fold that takes about 15 minutes.","Cut a square sheet of paper|Follow a crane diagram from a beginner origami site|Shape the wings and neck"],
+["Friendship bracelet","A braided bracelet from three strands of thread.","Cut three 40 cm strands|Knot them at the top and tape down|Braid until it fits, then knot"],
+["Paper bookmark","Decorate a bookmark from scrap paper.","Cut a 5 by 15 cm strip|Decorate one side|Punch a hole and add a string tassel"],
+["Can pencil holder","Reuse a clean can as a desk organizer.","Wash and dry the can|Wrap it in paper or fabric|Glue the edges and let it dry"]],
+"Cooking":[
+["Fried rice","Use cold rice and any vegetables you have.","Heat oil in a pan|Fry vegetables for 3 minutes|Add cold rice and soy sauce, stir for 5 minutes"],
+["Quesadilla","Ready in 10 minutes with a tortilla and cheese.","Put cheese on half a tortilla|Fold and cook 2 minutes per side|Slice and serve"],
+["Veggie omelet","A fast meal with eggs and vegetables.","Whisk two eggs|Cook in a buttered pan|Add chopped vegetables, fold, and serve"],
+["Peanut noodles","Noodles with a quick sauce.","Boil noodles as the package says|Mix peanut butter, soy sauce, and hot water|Toss together"]],
+"Baking":[
+["Mug cake","A single-serving cake made in the microwave.","Mix flour, sugar, cocoa, and milk in a mug|Microwave for 90 seconds|Let it cool for a minute"],
+["Cookies for two","A small batch of chocolate chip cookies.","Mix butter, sugar, flour, and chips|Scoop four balls onto a tray|Bake at 175 C (350 F) for 10 minutes"],
+["Banana muffins","A use for overripe bananas.","Mash two bananas|Mix with flour, sugar, egg, and butter|Bake in a muffin tin for 20 minutes"],
+["Yogurt flatbread","Two-ingredient dough, no oven.","Mix equal parts flour and yogurt|Roll into thin rounds|Cook in a dry pan 2 minutes per side"]],
+"Outdoors":[
+["Photo walk","A 30-minute walk photographing one theme.","Pick a theme like doors or shadows|Walk without a destination|Choose your best three photos"],
+["Find five new things","Look for details you have missed.","Walk a familiar route|Notice five things you have not seen before|Write them down"],
+["Sit and sketch","Pick a spot and draw what you see.","Find a bench or a lawn|Draw for 15 minutes|Add the date to the page"],
+["Cloud watching","Lie down and watch the sky for 10 minutes.","Find a safe place to lie down|Look for shapes in the clouds|Notice how they change"]],
+"Music":[
+["Song Maker loop","Build an 8-bar melody in Chrome Music Lab.","Open Chrome Music Lab and choose Song Maker|Click to place notes|Press play and adjust","Create"],
+["Build a beat","Use the Rhythm tool in Chrome Music Lab.","Open Chrome Music Lab and choose Rhythm|Place beats on the grid|Add a second sound","Create"],
+["Melody Maker","Make a short tune with Chrome Music Lab.","Open Chrome Music Lab and choose Melody Maker|Draw a melody|Change the instrument and replay","Create"],
+["Listen to a full album","Pick an album you have never heard.","Pick an album|Put your phone away|Write one line about each track","Listen"],
+["Mood playlist","Collect ten songs for how you feel now.","Pick a mood|Add ten songs|Order them from start to end","Listen"],
+["Try a new genre","Spend 20 minutes in a genre you do not know.","Pick a genre you have skipped|Find a well-known playlist|Note one song you liked","Listen"]],
+"Books/Shows":[
+["Read one short story","Finish a story in one sitting.","Choose a short story from a library or free site|Read without checking your phone|Write one sentence about the ending","Book"],
+["Open a book you own","Read the first 30 pages of an unread book.","Pick one from your shelf|Read 30 pages|Decide whether to keep going","Book"],
+["Borrow an ebook","Use a library app to get your next read.","Open your library app|Search your genre|Borrow it and read chapter one","Book"],
+["One new episode","Commit to a single episode of something new.","Open one of your services|Search by your genre|Watch one full episode","Show"],
+["Short documentary","A film under 40 minutes.","Search for short documentaries|Pick one|Watch without scrolling","Show"],
+["Foreign-language film","Try a film with subtitles.","Pick a country you know little about|Find a film with subtitles|Watch the first 20 minutes","Show"]],
+"Coding":[
+["Number guessing game","A small first program.","Pick your language|Make the computer choose a number from 1 to 100|Loop until the player guesses it"],
+["Reverse a string","A classic warm-up exercise.","Write a function that takes text|Return it backwards|Test with three examples"],
+["Terminal to-do list","A tiny project to practice lists.","Store tasks in a list|Add a menu to add and remove tasks|Print the list after each action"],
+["One practice problem","Try one problem from a free coding site.","Pick the easiest level|Write the solution in plain words first|Code it and test"]],
+"Learn something random":[
+["Random Wikipedia article","Learn something you did not pick.","Open Wikipedia's random article|Read the whole thing|Tell someone one fact"],
+["Five words in a new language","Pick a language and learn the basics.","Pick a language|Find five common words|Say each one out loud"],
+["How does it work?","Pick an object near you and find out.","Choose an object|Search how it works|Explain it in three sentences"],
+["Short explainer video","A video under 10 minutes on a new topic.","Search a topic you know nothing about|Pick a video under 10 minutes|Write down one new thing"]],
+"Social":[
+["Card game night","A simple card game for the group.","Pick a game like Rummy or Spoons|Deal the cards|Play three rounds"],
+["Cook together","Make one simple meal as a group.","Pick a recipe with few ingredients|Split the steps|Eat together"],
+["Two truths and a lie","Works with any group size.","Each person says three statements|Others guess the lie|Take turns"],
+["Walk and talk","A group walk with one question each.","Choose a route|Each person asks one question|Swap partners halfway"]]
+};
+const NICHES=Object.keys(D);
+const LV=["Beginner","Intermediate","Advanced"];
+const has=(...n)=>a=>n.includes(a.niche);
+
+// ---------- QUESTIONS: add a screen by adding one line ----------
+// k = answer name, q = question, o = button options, ph = typed input hint, w = when to show, opt = optional
+const Q=[
+{k:"time",q:"How much time do you have?",ph:"e.g. 45 minutes"},
+{k:"mood",q:"How are you feeling?",o:["Stressed","Tired","Restless","Curious","Lonely","Energetic"]},
+{k:"niche",q:"What are you in the mood for?",o:[...NICHES,"Surprise me"]},
+{k:"materials",q:"What materials do you have?",ph:"e.g. pencils, paper, tape",w:has("Arts","Crafts")},
+{k:"ingredients",q:"What ingredients do you have?",ph:"e.g. eggs, flour, rice",w:has("Cooking","Baking")},
+{k:"allergies",q:"Any allergies or restrictions?",ph:"Optional",opt:1,w:has("Cooking","Baking")},
+{k:"people",q:"How many people?",ph:"e.g. 4",w:has("Social")},
+{k:"weather",q:"What’s the weather like?",o:["Sunny","Cloudy","Rainy","Cold","Hot"],w:has("Outdoors")},
+{k:"mlc",q:"Listen or create?",o:["Listen","Create"],w:has("Music")},
+{k:"mgenre",q:"What genre?",ph:"e.g. jazz",w:a=>a.niche=="Music"&&a.mlc=="Listen"},
+{k:"mlevel",q:"What is your music level?",o:LV,w:a=>a.niche=="Music"&&a.mlc=="Create"},
+{k:"btype",q:"Book or show?",o:["Book","Show"],w:has("Books/Shows")},
+{k:"services",q:"Which streaming, book, or library services do you have?",ph:"e.g. Netflix, library app",w:has("Books/Shows")},
+{k:"bgenre",q:"What genre?",ph:"e.g. mystery",w:has("Books/Shows")},
+{k:"blang",q:"What language?",ph:"e.g. English",w:has("Books/Shows")},
+{k:"clevel",q:"What is your coding level?",o:LV,w:has("Coding")},
+{k:"cexp",q:"Have you coded before?",o:["Yes","No"],w:a=>a.niche=="Coding"&&a.clevel=="Beginner"},
+{k:"clang",q:"Which language?",ph:"e.g. Python",w:has("Coding")},
+{k:"budget",q:"Any budget limit?",o:["Free only","Small budget","No limit"],w:has("Arts","Crafts","Cooking","Baking","Books/Shows")}
+];
+
+// ---------- APP ----------
+const m=document.getElementById("m"),sv=document.getElementById("sv");
+let a={},hist=[],cur=-1,pg=0,S=[];
+try{S=JSON.parse(localStorage.getItem("plethora-saved")||"[]")}catch(e){}
+const put=()=>{try{localStorage.setItem("plethora-saved",JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nxt=i=>{for(let j=i+1;j<Q.length;j++)if(!Q[j].w||Q[j].w(a))return j;return"r"};
+const more=()=>{const t=document.getElementById("mo");if(t&&Q[cur])a["more_"+Q[cur].k]=t.value};
+const go=x=>{more();hist.push(cur);cur=x;if(x=="r")pg=0;draw()};
+const back=()=>{more();if(hist.length){cur=hist.pop();draw()}};
+
+function question(){
+  const q=Q[cur];
+  let h="<h1>"+q.q+"</h1>";
+  if(q.o)h+=q.o.map(o=>`<button class="opt${a[q.k]==o?" on":""}" data-a="opt" data-v="${esc(o)}">${esc(o)}</button>`).join("");
+  else h+=`<input id="in" value="${esc(a[q.k]||"")}" placeholder="${q.ph}" autocomplete="off"><button class="main" data-a="next">Next</button><p id="er" class="note"></p>`;
+  h+=`<label class="more">More info (optional)<textarea id="mo" rows="2">${esc(a["more_"+q.k]||"")}</textarea></label><button class="link" data-a="back">Back</button>`;
+  return h;
+}
+
+function items(){
+  const f=a.niche=="Music"?a.mlc:a.niche=="Books/Shows"?a.btype:0;
+  return D[a.niche].filter(x=>!f||x[3]==f);
+}
+
+function results(){
+  const L=items(),n=L.length;
+  let h="<h1>Here are 3 ideas.</h1><p class=\"note\">Based on your answers: "+esc([a.time,a.mood,a.niche].join(", "))+"</p>";
+  for(let j=0;j<3;j++){
+    const x=L[(pg*3+j)%n],saved=S.some(s=>s.t==x[0]);
+    h+=`<article><h2>${x[0]}</h2><p>${x[1]}</p><button class="small" data-a="steps">Show steps</button><button class="small" data-a="save" data-t="${esc(x[0])}" data-d="${esc(x[1])}">${saved?"Saved":"Save"}</button><div class="st" hidden><ol>${x[2].split("|").map(s=>"<li>"+s+"</li>").join("")}</ol><p class="note">Link: placeholder (real links come with the AI step)</p></div></article>`;
+  }
+  return h+`<button class="main" data-a="again">Run again</button><button class="link" data-a="over">Start over</button><button class="link" data-a="back">Back</button>`;
+}
+
+function saved(){
+  let h="<h1>Saved</h1>";
+  h+=S.length?S.map((s,i)=>`<article><h2>${esc(s.t)}</h2><p>${esc(s.d)}</p><button class="small" data-a="rm" data-i="${i}">Remove</button></article>`).join(""):"<p class=\"note\">Nothing saved yet.</p>";
+  return h+`<button class="link" data-a="back">Back</button>`;
+}
+
+function draw(){
+  sv.textContent="Saved ("+S.length+")";
+  m.innerHTML=cur==-1?"<h1>Bored? Let’s find something to do.</h1><p class=\"note\">Answer a few quick questions and get 3 ideas that fit.</p><button class=\"main\" data-a=\"start\">Start</button>":cur=="r"?results():cur=="s"?saved():question();
+  window.scrollTo(0,0);
+  const i=document.getElementById("in");if(i)i.focus();
+}
+
+function choose(v){
+  const q=Q[cur];
+  a[q.k]=v;
+  if(q.k=="niche"&&v=="Surprise me"){a.niche=NICHES[Math.floor(Math.random()*NICHES.length)];a.surprise=1}
+  go(nxt(cur));
+}
+
+function submit(){
+  const q=Q[cur],v=document.getElementById("in").value.trim();
+  if(!v&&!q.opt){document.getElementById("er").textContent="Please type an answer.";return}
+  a[q.k]=v;go(nxt(cur));
+}
+
+m.onclick=e=>{
+  const t=e.target.closest("button");if(!t)return;
+  const k=t.dataset.a;
+  if(k=="start")go(0);
+  else if(k=="back")back();
+  else if(k=="again"){pg++;draw()}
+  else if(k=="over"){a={};hist=[];cur=-1;pg=0;draw()}
+  else if(k=="opt"){more();choose(t.dataset.v)}
+  else if(k=="next")submit();
+  else if(k=="steps"){const s=t.closest("article").querySelector(".st");s.hidden=!s.hidden;t.textContent=s.hidden?"Show steps":"Hide steps"}
+  else if(k=="save"){
+    const i=S.findIndex(s=>s.t==t.dataset.t);
+    if(i>=0)S.splice(i,1);else S.push({t:t.dataset.t,d:t.dataset.d});
+    put();t.textContent=i>=0?"Save":"Saved";sv.textContent="Saved ("+S.length+")";
+  }
+  else if(k=="rm"){S.splice(+t.dataset.i,1);put();draw()}
+};
+sv.onclick=()=>go("s");
+document.onkeydown=e=>{if(e.key=="Enter"&&document.activeElement.id=="in")submit()};
+draw();
+</script>
+</body>
+</html>
