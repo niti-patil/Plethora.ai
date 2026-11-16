@@ -248,23 +248,23 @@ function items(){
 // ---------- AI CONNECTION ----------
 // Paste your Cloudflare Worker URL below. While it is empty, the app uses the sample ideas.
 const API_URL="https://plethora.patil-niti01.workers.dev";
-let AI=null,busy=false,seen=[];
+let AI=null,busy=false,seen=[],ERR="";
 async function fetchAI(){
-  busy=true;draw(true);
+  busy=true;ERR="";draw(true);
   try{
     const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers:Object.fromEntries(Object.entries(a).filter(e=>!e[0].startsWith("more_"))),notes:notes(),seen})});
-    if(!r.ok)throw 0;
+    if(!r.ok){let d=String(r.status);try{const e=await r.json();d=(e.status||r.status)+" "+(e.detail||e.error||"")}catch(x){}throw new Error(d)}
     const j=await r.json();
     AI=j.items.slice(0,3).map(x=>[String(x.title),String(x.about||""),(x.steps||[]).map(String).join("|"),0,/^https?:\/\//.test(x.link)?x.link:""]);
     seen.push(...AI.map(x=>x[0]));
-  }catch(e){AI=null}
+  }catch(e){AI=null;ERR=String(e&&e.message||e).slice(0,300)}
   busy=false;draw(true);
 }
 
 function results(){
   if(busy)return "<h1>Finding ideas…</h1><p class=\"note\">This can take a few seconds.</p>";
   const L=AI||items(),n=L.length;
-  let h="<h1>Here are 3 ideas.</h1><p class=\"note\">Based on your answers: "+esc([a.time,a.mood,a.niche].join(", "))+"</p>"+(notes().length?"<p class=\"note\">Your notes: "+esc(notes().map(n=>n.note).join("; "))+"</p>":"")+(API_URL&&!AI?"<p class=\"note\">The AI could not be reached, so these are sample ideas.</p>":"");
+  let h="<h1>Here are 3 ideas.</h1><p class=\"note\">Based on your answers: "+esc([a.time,a.mood,a.niche].join(", "))+"</p>"+(notes().length?"<p class=\"note\">Your notes: "+esc(notes().map(n=>n.note).join("; "))+"</p>":"")+(API_URL&&!AI?"<p class=\"note\">The AI could not be reached, so these are sample ideas."+(ERR?" ("+esc(ERR)+")":"")+"</p>":"");
   for(let j=0;j<3;j++){
     const x=L[(pg*3+j)%n],saved=S.some(s=>s.t==x[0]);
     h+=`<article><h2>${x[0]}</h2><p>${x[1]}</p><button class="small" data-a="steps">Show steps</button><button class="small" data-a="save" data-t="${esc(x[0])}" data-d="${esc(x[1])}">${saved?"Saved":"Save"}</button><div class="st" hidden><ol>${x[2].split("|").map(s=>"<li>"+s+"</li>").join("")}</ol><p class="note"><a href="${esc(x[4]||LK[x[0]]||gs(x[0]+" tutorial"))}" target="_blank" rel="noopener">Open link</a></p></div></article>`;
