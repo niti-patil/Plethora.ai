@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plethora.ai</title>
+<meta name="description" content="Bored? Answer a few quick questions and get 3 specific ideas that fit your time, mood, and what you have.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Plethora.ai">
+<meta property="og:description" content="Bored? Answer a few quick questions and get 3 specific ideas that fit your time, mood, and what you have.">
+<meta property="og:url" content="https://niti-patil.github.io/Plethora.ai/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0C0D0F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230C0D0F'/><text x='16' y='23' font-size='20' text-anchor='middle' font-family='monospace' fill='%23D8DBE0'>P</text></svg>">
 <style>
 :root{color-scheme:dark;--bg:#0C0D0F;--ink:#D8DBE0;--hi:#F4F5F7;--mute:#7B808A;--line:#24272D;--acc:#D8DBE0}
 *{box-sizing:border-box}
@@ -61,12 +69,15 @@ article p{margin:0 0 14px;color:var(--ink)}
 .st{margin-top:14px}
 .st ol{margin:0 0 8px;padding-left:20px}
 a{color:var(--hi);text-underline-offset:3px}
+.priv{margin:18px 0 0;font-size:12px;color:#5F646D}
+footer{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 20px 40px;font-size:12px}
 :focus-visible{outline:1px solid #8A909A;outline-offset:3px}
 </style>
 </head>
 <body>
 <header><b>Plethora.ai</b><button id="sv" class="link"></button></header>
 <main id="m"></main>
+<footer id="ft"></footer>
 <script>
 // ---------- SAMPLE DATA: REPLACE WITH AI LATER ----------
 // Each item: [title, description, "step 1|step 2|step 3", optional filter tag]
@@ -248,6 +259,11 @@ function items(){
 // ---------- AI CONNECTION ----------
 // Paste your Cloudflare Worker URL below. While it is empty, the app uses the sample ideas.
 const API_URL="https://plethora.patil-niti01.workers.dev";
+// Fill these in (leave "" to keep a feature off):
+const FEEDBACK_URL="";   // link to your Google Form
+const GOATCOUNTER="";    // your GoatCounter code, e.g. "plethora" (free visit counter)
+const CF_TOKEN="";       // or a Cloudflare Web Analytics token
+const priv=()=>"Your answers are sent to an AI service to find ideas, and we don’t save them. Saved ideas stay on your device."+((GOATCOUNTER||CF_TOKEN)?" We count visits, nothing personal.":"");
 let AI=null,busy=false,seen=[],ERR="";
 async function fetchAI(){
   busy=true;ERR="";draw(true);
@@ -280,7 +296,7 @@ function saved(){
 
 function draw(keep){
   sv.textContent="Saved ("+S.length+")";
-  m.innerHTML=cur==-1?"<h1>Bored? Let’s find something to do.</h1><p class=\"note\">Answer a few quick questions and get 3 ideas that fit.</p><button class=\"main\" data-a=\"start\">Start</button>":cur=="r"?results():cur=="s"?saved():question();
+  m.innerHTML=cur==-1?"<h1>Bored? Let’s find something to do.</h1><p class=\"note\">Answer a few quick questions and get 3 ideas that fit.</p><button class=\"main\" data-a=\"start\">Start</button><p class=\"priv\">"+priv()+"</p>":cur=="r"?results():cur=="s"?saved():question();
   if(!keep){window.scrollTo(0,0);const i=document.querySelector("#m input");if(i)i.focus()}
 }
 
@@ -320,6 +336,11 @@ m.onclick=e=>{
 sv.onclick=()=>go("s");
 m.onchange=e=>{if(e.target.dataset.k=="clevel"){collect();more();draw(true)}};
 document.onkeydown=e=>{if(e.key=="Enter"&&document.activeElement.tagName=="INPUT")submit()};
+// feedback link
+if(FEEDBACK_URL&&/^https?:\/\//.test(FEEDBACK_URL))document.getElementById("ft").innerHTML='<a class="link" href="'+FEEDBACK_URL+'" target="_blank" rel="noopener">Send feedback</a>';
+// visit counter (only loads if you fill in a code above)
+if(/^[a-z0-9-]+$/i.test(GOATCOUNTER)){const g=document.createElement("script");g.async=true;g.src="https://gc.zgo.at/count.js";g.dataset.goatcounter="https://"+GOATCOUNTER+".goatcounter.com/count";document.head.appendChild(g)}
+if(/^[a-z0-9]+$/i.test(CF_TOKEN)){const c=document.createElement("script");c.defer=true;c.src="https://static.cloudflareinsights.com/beacon.min.js";c.dataset.cfBeacon=JSON.stringify({token:CF_TOKEN});document.head.appendChild(c)}
 draw();
 </script>
 </body>
